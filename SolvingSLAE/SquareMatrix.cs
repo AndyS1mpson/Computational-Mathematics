@@ -8,7 +8,7 @@ namespace SolvingSLAE
         public double[,] _matrix;                   // initial matrix
         public double[,] reverseMatrix;             // inverse matrix
         public int size;                            // size of initial matrix
-        public double conditionNumber;            // the condition number of matrix
+        public double conditionNumber;              // the condition number of matrix
         public bool isLU;                           // the check the LU decomposition exist or not
         public bool isQR;                           // the check the QR decomposition exist or not
         private bool isSingular;                    // the check if matrix is singular or not
@@ -158,7 +158,7 @@ namespace SolvingSLAE
                     {
                         if(Math.Abs(matrixU[j,i]) > leadElem && matrixU[j,i] != 0)
                         {
-                            leadElem = matrixU[j,i];
+                            leadElem = Math.Abs(matrixU[j,i]);
                             lineNum2 = j;
                         }
                     }
