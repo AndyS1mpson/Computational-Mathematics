@@ -20,6 +20,7 @@ namespace NewtonMethod
         public double norm;                         // norm of matrix
         public int jacobyInter;                     // amount of iteration in the Jacoby's method
         public int seidelIter;                      // amount of iteration in the Seidel's method
+        public int numOfOperations;
         public SquareMatrix(double[,] matrix,int size)
         {
             this.size = size;
@@ -28,6 +29,7 @@ namespace NewtonMethod
             isQR = false;
             _rank = size;
             norm = Norm(_matrix);
+            numOfOperations = 0;
             eps = 1e-14 * norm;
             Reverse();
         }
@@ -89,6 +91,7 @@ namespace NewtonMethod
         // implement LU matrix decomposition
         public void LUDecomposition()
         {
+            numOfOperations = 0;
             isLU = true;
             isSingular = true;
             matrixL = new double[size, size];
@@ -182,6 +185,8 @@ namespace NewtonMethod
                                 // check element is abs 0 or not
                                 if(Math.Abs(matrixU[k,j]) < eps)
                                     matrixU[k,j] = 0;
+
+                                numOfOperations += 2;
                             }
                             matrixL[k, i] = coeff;
                         }

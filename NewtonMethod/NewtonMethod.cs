@@ -8,9 +8,10 @@ namespace NewtonMethod
         private double[] F;                     // system of functions
         private double[] x,xk1;                 // approximate roots
         private double[] currentX;              
-        private SquareMatrix J, I;              // matrix of Jacoby 
+        private SquareMatrix J;              // matrix of Jacoby 
         private int size;                       // size of matrices
         private double eps;
+        private int numOfOperations;
         private double norm;                    // norm of vector
         private int iter;                       // amount of iterations
         public Stopwatch sw;                    // check time of work
@@ -37,6 +38,7 @@ namespace NewtonMethod
 
             x.InitX();
             iter = 0;
+            numOfOperations = 0;
             while(true)
             {
                 iter++;
@@ -53,17 +55,23 @@ namespace NewtonMethod
                 {
                     xk1[i] = x[i] - currentX[i];
 
-                    norm += (xk1[i] - x[i]) * (xk1[i] - x[i]);
+                    //norm += (xk1[i] - x[i]) * (xk1[i] - x[i]);
+                
+                    if (Math.Abs(xk1[i] - x[i]) > norm)
+                        norm = Math.Abs(xk1[i] - x[i]);
+
 
                     x[i] = xk1[i];
+
+                    numOfOperations += 5;
                 }
 
-                norm = Math.Sqrt(norm);
                 if(norm < eps)
                     break;
             }
             sw.Stop();
             Console.Out.Write("Количество итераций :" + iter + "\n");
+            Console.Out.Write("Число арифметических операций :" + numOfOperations + "\n");
             Console.Out.Write("Затраченное время :" + sw.Elapsed + "\n");
             return xk1;
         }
@@ -75,10 +83,12 @@ namespace NewtonMethod
            sw.Start();
            x.InitX();
            iter = 0;
+           numOfOperations = 0;
            //J = new SquareMatrix(InitializationExtension.InitJ(x),size);
            J = new SquareMatrix(InitializationExtension.InitializationJ(x),size);
 
            J.LUDecomposition();
+           numOfOperations += J.numOfOperations;
            J.Reverse();
 
             while(true)
@@ -93,17 +103,22 @@ namespace NewtonMethod
                 {
                    xk1[i] = x[i] - currentX[i];
 
-                   norm += (xk1[i] - x[i]) * (xk1[i] - x[i]);
+                   //norm += (xk1[i] - x[i]) * (xk1[i] - x[i]);
+
+                    if (Math.Abs(xk1[i] - x[i]) > norm)
+                        norm = Math.Abs(xk1[i] - x[i]);
 
                     x[i] = xk1[i];
+
+                    numOfOperations += 5;
                 }
                 
-                norm = Math.Sqrt(norm);
                 if(norm < eps)
                     break;
             }
             sw.Stop();
             Console.Out.Write("Количество итераций :" + iter + "\n");
+            Console.Out.Write("Число арифметических операций :" + numOfOperations + "\n");
             Console.Out.Write("Затраченное время :" + sw.Elapsed + "\n");
 
             return xk1;
@@ -118,6 +133,7 @@ namespace NewtonMethod
             x.InitX();
 
             iter = 0;
+            numOfOperations = 0;
             sw.Start();
             while(true)
             {
@@ -128,6 +144,8 @@ namespace NewtonMethod
                 J = new SquareMatrix(InitializationExtension.InitializationJ(x),size);
                 F.InitializationF(x);
                 J.LUDecomposition();
+                numOfOperations += J.numOfOperations;
+
                 if(step > 0)
                 {
                     J.Reverse();
@@ -141,9 +159,14 @@ namespace NewtonMethod
                 for(int i = 0;i < size;i++)
                 {
                     xk1[i] = x[i] - currentX[i];
-                    norm += (xk1[i] - x[i]) * (xk1[i] - x[i]);
+                    //norm += (xk1[i] - x[i]) * (xk1[i] - x[i]);
+
+                    if (Math.Abs(xk1[i] - x[i]) > norm)
+                        norm = Math.Abs(xk1[i] - x[i]);
 
                     x[i] = xk1[i];
+
+                    numOfOperations += 5;
                 }
                  norm = Math.Sqrt(norm);
                 if(norm < eps)
@@ -152,6 +175,7 @@ namespace NewtonMethod
             }
             sw.Stop();
             Console.Out.Write("Количество итераций :" + iter + "\n");
+            Console.Out.Write("Число арифметических операций :" + numOfOperations + "\n");
             Console.Out.Write("Затраченное время :" + sw.Elapsed + "\n");
             return xk1;
         }
@@ -168,8 +192,10 @@ namespace NewtonMethod
             J = new SquareMatrix(InitializationExtension.InitializationJ(x),size);
 
             J.LUDecomposition();
+           numOfOperations += J.numOfOperations;
+
             iter = 0;
-            
+            numOfOperations = 0;
             sw.Start();
             while(true)
             {
@@ -183,6 +209,8 @@ namespace NewtonMethod
                 J = new SquareMatrix(InitializationExtension.InitializationJ(x),size);
 
                     J.LUDecomposition();
+                    numOfOperations += J.numOfOperations;
+
                     J.Reverse();
                 }
                 currentX = J.SolutionSystem(F);
@@ -191,17 +219,22 @@ namespace NewtonMethod
                 {
                     xk1[i] = x[i] - currentX[i];
 
-                    norm += (xk1[i] - x[i]) * (xk1[i] - x[i]);
+                    //norm += (xk1[i] - x[i]) * (xk1[i] - x[i]);
+
+                    if (Math.Abs(xk1[i] - x[i]) > norm)
+                        norm = Math.Abs(xk1[i] - x[i]);
 
                     x[i] = xk1[i];
+
+                    numOfOperations += 5;
                 }
 
-                norm = Math.Sqrt(norm);
                 if(norm < eps)
                     break;
             }
             sw.Stop();
             Console.Out.Write("Количество итераций :" + iter + "\n");
+            Console.Out.Write("Число арифметических операций :" + numOfOperations + "\n");
             Console.Out.Write("Затраченное время :" + sw.Elapsed + "\n");
             return xk1;
         }
