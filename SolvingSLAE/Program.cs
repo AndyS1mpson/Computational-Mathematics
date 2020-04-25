@@ -34,9 +34,9 @@ namespace SolvingSLAE
                 for (int j = 0; j < size; j++)
                 {
                     if (i == j)
-                        arr[i, j] = rand.NextDouble(50, 100);
+                        arr[i, j] = rand.Next(50, 100);
                     else
-                        arr[i, j] = rand.NextDouble(-49, 49);
+                        arr[i, j] = rand.Next(-49, 49);
                 }
 
 
