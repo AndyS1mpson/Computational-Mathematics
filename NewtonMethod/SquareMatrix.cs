@@ -186,7 +186,7 @@ namespace NewtonMethod
                                 if(Math.Abs(matrixU[k,j]) < eps)
                                     matrixU[k,j] = 0;
 
-                                numOfOperations += 2;
+                                numOfOperations += 3;
                             }
                             matrixL[k, i] = coeff;
                         }

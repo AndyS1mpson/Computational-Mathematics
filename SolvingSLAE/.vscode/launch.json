@@ -12,7 +12,7 @@
             "program": "${workspaceFolder}/bin/Debug/netcoreapp3.1/SolvingSLAE.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "console": "internalConsole",
+            "console": "externalTerminal",
             "stopAtEntry": false
         },
         {

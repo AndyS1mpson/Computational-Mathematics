@@ -4,6 +4,7 @@ namespace SolvingSLAE
 {
     public class SquareMatrix
     {
+        private Random rnd = new Random();
         public double eps;
         public double[,] _matrix;                   // initial matrix
         public double[,] reverseMatrix;             // inverse matrix
@@ -28,10 +29,12 @@ namespace SolvingSLAE
             isQR = false;
             _rank = size;
             norm = Norm(_matrix);
-            eps = 1e-14 * norm;
+            eps = 1e-14;
             Reverse();
+            conditionNumber = Norm(reverseMatrix) * Norm(_matrix);
+
         }
-        
+
         // display a matrix
         public static void Output(double[,] matrix,int size)
         {
@@ -80,7 +83,7 @@ namespace SolvingSLAE
                 {
                     cur += Math.Abs(matrix[i,j]);
                 }
-                if(cur > norm)
+                if(cur > _norm)
                     _norm = cur;
             }
             return _norm;
@@ -230,12 +233,22 @@ namespace SolvingSLAE
         } 
         
         // find solution of system
-        public double[] SolutionSystem(double[] vec)
+        public double[,] SolutionSystem(double[] vec)
         {
+            double[,] resultSolution;
             if(!isLU)
                 LUDecomposition();
+
             double[] X = new double[size];
             double[] Y = new double[size];
+            int fsrNum = size - _rank;
+                if(fsrNum !=0)
+                resultSolution = new double[fsrNum,size];
+                else{
+                resultSolution = new double[1,size];
+                fsrNum = 1;
+                }
+
 
             vec = multiplyVec(matrixP,vec,size);        // conversion to view after rearrangement
             isSingular = true;
@@ -248,36 +261,56 @@ namespace SolvingSLAE
                     break;
                 }
             }
-            // look for y :
-            // Ly = b
-            for(int j = 0; j < size; j++)                //reverse stroke along the left matrix
+            for(int i = 0;i < fsrNum;i++)
             {
-                Y[j] = vec[j];
-                    for (int i = 0; i < j; i++)
-                        Y[j] -= matrixL[j,i] * Y[i];
-            }
-            // look for x :
-            // Ux = y
-            for(int j = size - 1;j > -1;j--)            //reverse stroke along the right matrix
-            {
-                X[j] = Y[j] / matrixU[j,j];
-                for(int i = j+1;i < size;i++)
-                    X[j] -= matrixU[j,i] * X[i] / matrixU[j,j];
-            }
-            X = multiplyVec(matrixQ,X,size);            //remove the effect of column permutation
+                for(int j = size - 1;j >_rank - 1;j--)
+                        {
+                            X[j] = rnd.Next(0,2) ;
 
-            // find matrix condition number
-            double vecNorm = 0;
-            double solutionNorm = 0;
-            for(int i = 0;i < vec.Length - 1; i++)
-            {
-                vecNorm += vec[i] * vec[i];
-                solutionNorm += X[i] * X[i];
+                        }
+                // look for y :
+                // Ly = b
+                for(int j = 0; j < size; j++)                //reverse stroke along the left matrix
+                {
+                    Y[j] = vec[j];
+                        for (int k = 0; k < j; k++)
+                            Y[j] -= matrixL[j,k] * Y[k];
+                }
+                // look for x :
+                // Ux = y
+                for(int j = _rank - 1;j > -1;j--)            //reverse stroke along the right matrix
+                {
+                    X[j] = Y[j] / matrixU[j,j];
+                    for(int k = j+1;k < size;k++)
+                        X[j] -= matrixU[j,k] * X[k] / matrixU[j,j];
+                }
+                X = multiplyVec(matrixQ,X,size);            //remove the effect of column permutation
+                for(int j = 0;j < size;j++)
+                    resultSolution[i,j] = X[j];
+                bool isSame = true;
+                if(i>0)
+                for(int k = i;k >0; k--)
+                for(int j = 0;j < size;j++)
+                {
+                    if(resultSolution[i,j] != resultSolution[k-1,j])
+                        isSame = false;
+                }
+                
+                if(isSame && i > 0)
+                    i--;
+
             }
-            vecNorm = Math.Sqrt(vecNorm);
-            solutionNorm = Math.Sqrt(solutionNorm);
-            conditionNumber = (Norm(reverseMatrix) * solutionNorm) / vecNorm;
-            return X;
+                // find matrix condition number
+                double vecNorm = 0;
+                double solutionNorm = 0;
+                for(int i = 0;i < vec.Length - 1; i++)
+                {
+                    vecNorm += vec[i] * vec[i];
+                    solutionNorm += X[i] * X[i];
+                }
+                vecNorm = Math.Sqrt(vecNorm);
+                solutionNorm = Math.Sqrt(solutionNorm);
+            return resultSolution;
         }
         
         // multiply matrix with vector
@@ -349,10 +382,10 @@ namespace SolvingSLAE
                 {
                     if(R[i,j] != 0)
                     {
-                        cos = Math.Round(R[j,j] / (Math.Sqrt( Math.Pow (R[j,j], 2) 
-                                                                + Math.Pow (R[i,j], 2))),8);
-                        sin = Math.Round(-R[i,j] / (Math.Sqrt( Math.Pow (R[j,j], 2) 
-                                                                + Math.Pow (R[i,j], 2))),8);
+                        cos = R[j,j] / (Math.Sqrt( Math.Pow (R[j,j], 2) 
+                                                                + Math.Pow (R[i,j], 2)));
+                        sin = -R[i,j] / (Math.Sqrt( Math.Pow (R[j,j], 2) 
+                                                                + Math.Pow (R[i,j], 2)));
                         
                         rotateMatr[j,j] = cos;    rotateMatr[j,i] = -sin;
                         rotateMatr[i,j] = sin;    rotateMatr[i,i] = cos;
@@ -424,32 +457,36 @@ namespace SolvingSLAE
                     b[i] /= _matrix[i,i];
                     Xk[i] = b[i];
                 }
+            double dif;
+            if(Norm(matrixB) < 0.5)
+                dif = (1 - Norm(matrixB)) /Norm(matrixB) ;
+            else dif = eps;
+            
             do{
                 double normDif = 0;
                 jacobyInter++;
                 for(int i = 0;i < size;i++)
                     Xk1[i] = Xk[i];
-                
                 // make Xk = D^(-1) * ( L + R) * Xk
                 Xk = multiplyVec(matrixB,Xk,size);
 
                 for(int i = 0;i < size;i++)
                 {
                     Xk[i] = -Xk[i] + b[i];
-                    // if(Math.Abs(Xk[i] - Xk1[i]) > differenceVec)
-                    //     differenceVec = Math.Abs(Xk[i] - Xk1[i]);
-
-                    
                 }
-                    for(int j = 0;j < size;j++)
-                    {
-                        normDif += (Xk[j] - Xk1[j]) * (Xk[j] - Xk1[j]);
-                    }
-                    normDif = Math.Sqrt(normDif);
 
-                if(normDif < 1e-6)
+                for(int j = 0;j < size;j++)
+                {
+                    normDif += (Xk[j] - Xk1[j]) * (Xk[j] - Xk1[j]);
+                }
+                normDif = Math.Sqrt(normDif);
+
+                if(normDif < dif)
                     break;
+
             }while(true);
+
+
             return Xk;
         }   
        
@@ -484,6 +521,12 @@ namespace SolvingSLAE
                     b[i] /= _matrix[i,i];
                     Xk[i] = b[i];
                 }
+
+            double dif;
+            if(Norm(matrixB) < 0.5)
+                dif = (1 - Norm(matrixB)) /Norm(matrixB) ;
+            else dif = eps;
+
             do
             {
                 seidelIter++;
@@ -509,7 +552,7 @@ namespace SolvingSLAE
                     }
                     normDif = Math.Sqrt(normDif);
 
-                if(normDif < 1e-6)
+                if(normDif < dif)
                     break;
 
 

@@ -24,7 +24,7 @@ namespace NewtonMethod
             // x[0] = 1;
             // x[1] = 2;
             X[0] = 0.5; X[1] = 0.5; X[2] = 1.5; X[3] = -1; X[4] = -0.5; 
-            X[5] = 1.5; X[6] = 0.5; X[7] = -0.5; X[8] = 1.5; X[9] = -1.5;
+            X[5] = -0.2; X[6] = 0.5; X[7] = -0.5; X[8] = 1.5; X[9] = -1.5;
         }
     
         public static void InitializationF(this double[] F,double[] X) {        

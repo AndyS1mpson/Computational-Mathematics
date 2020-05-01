@@ -238,12 +238,13 @@ namespace SolvingSLAE
                 resultSolution = new double[1,sizeCols];
                 fsrNum = 1;
                 }
+                
                 Random rnd = new Random();
                 for(int i = 0;i < fsrNum;i++)
                 {
                     for(int j = sizeCols - 1;j >_rank - 1;j--)
                     {
-                        X[j] = rnd.Next(0,1);
+                        X[j] = rnd.Next(0,2);
                     }
                     // look for y :
                     // Ly = b
@@ -265,6 +266,17 @@ namespace SolvingSLAE
                     X = multiplyVec(matrixQ,X,minSize);
                     for(int j = 0;j < sizeCols;j++)
                         resultSolution[i,j] = X[j];
+                     bool isSame = true;
+                    if(i>0)
+                    for(int k = i;k >0; k--)
+                    for(int j = 0;j < sizeCols;j++)
+                    {
+                        if(resultSolution[i,j] != resultSolution[k-1,j])
+                            isSame = false;
+                    }
+                    
+                    if(isSame && i > 0)
+                        i--;
                 }
 
             return resultSolution;

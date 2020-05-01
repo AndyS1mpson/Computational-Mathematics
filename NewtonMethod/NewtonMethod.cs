@@ -48,7 +48,8 @@ namespace NewtonMethod
                 J = new SquareMatrix(InitializationExtension.InitializationJ(x),size);
                 // make LU decomposition
                 J.LUDecomposition();
-                
+                numOfOperations += J.numOfOperations;
+
                 currentX = SquareMatrix.multiplyVec(J.reverseMatrix,F,size);
                 
                 for(int i = 0;i < size;i++)
