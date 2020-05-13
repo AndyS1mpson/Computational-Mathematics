@@ -4,6 +4,7 @@ namespace Integral
 {
     class Program
     {
+        // my function 
         static double f(double x)
             => 2 * Math.Cos(2.5 * x) * Math.Exp(x * 1.0 / 3) + 4 * Math.Sin(3.5 * x) * Math.Exp(-3 * x) + x;
         static double NewtonKotsKF(double lim1, double lim2, double step)
@@ -84,6 +85,7 @@ namespace Integral
                 matrixArray[2,0] = moments[2];
                 matrixArray[2,1] = moments[3];
                 matrixArray[2,2] = moments[4];
+                
                 // declare matrix
                 SquareMatrix matrix = new SquareMatrix(matrixArray,3);
                 matrix.LUDecomposition();
@@ -139,7 +141,7 @@ namespace Integral
         static void Main(string[] args)
         {
 
-            // * * * * * * * * * * * * * Вариант ньютона - Котса * * * * * * * * * * * *
+            // * * * * * * * * * * * * * Вариант Ньютона - Котса * * * * * * * * * * * *
             Console.WriteLine("Вариант Ньютона-Котса : " + "\n");
 
             
@@ -158,6 +160,7 @@ namespace Integral
             double degree = 4;
             double speed = 3;
             double result2, result3;
+            Console.WriteLine("Скорость сходимости составной ИКФ :");
             while(error > 0.000001)
             {
                 step *= L;
@@ -173,11 +176,12 @@ namespace Integral
                 result3 = NewtonKotsKF(lim1,lim2,step);
 
                 speed = -Math.Log(Math.Abs((result3 - result2) / (result2 - integral))) / Math.Log(L);
-                System.Console.Out.Write(speed + "\n");
+                Console.WriteLine(speed);
 
                 error = Math.Abs((result2 - integral) / (Math.Pow(L, degree) - 1)); 
                 integral += (result2 - integral) / (1 - Math.Pow(L, -degree));
             }
+            Console.WriteLine("\n");
             WriteText("Составная ИКФ :",integral,Math.Abs(exactValue - integral),error);
 
             //* * * * * * * * * * * * * * * * Cоставная ИКФ c оптимальным шагом * * * * * * * * * *
