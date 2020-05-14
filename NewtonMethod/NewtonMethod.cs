@@ -136,9 +136,9 @@ namespace NewtonMethod
         // Method with transition to modified 
         public double[] TransitionToModMeth()
         {
-            Console.Out.Write("Переход от обычного метода Ньютона к модифицированному :");
-            int step = 7;
-
+            Console.Out.Write("Переход от обычного метода Ньютона к модифицированному :" + "\n");
+            int step = 4;
+            Console.WriteLine("Шаг k = " + step);
             x.InitX();
             double[] x0 = new double[size];
             x0.InitX();
@@ -150,21 +150,10 @@ namespace NewtonMethod
                 iter++;
                 norm = 0;
 
-                // if(step == 0)
-                // {
-                //     int a = 0;
-                // }
-
-                //F.InitF(x);
-                //J = new SquareMatrix(InitializationExtension.InitJ(x),size);
                 F1.InitializationF(x);
                 for(int i = 0;i < size;i++)
                     F[0,i] = F1[i];
 
-                // for(int i = 0;i < F.Length;i++)
-                // {
-                //     F[0,i] = -F[0,i];
-                // }
                 if(step > 0)
                 {
                     J = new SquareMatrix(InitializationExtension.InitializationJ(x),size);
@@ -209,8 +198,8 @@ namespace NewtonMethod
         // method with recounting reverse matrix every k iterations
         public double[] MethodWithRewriteRevMat()
         {
-            int step = 5;
-            Console.Out.Write("Поиск обратной матрицы каждые k = " + step + " итераций :");
+            int step = 7;
+            Console.Out.Write("Поиск обратной матрицы каждые k = " + step + " итераций :" + "\n");
             
             
             x.InitX();
@@ -227,7 +216,6 @@ namespace NewtonMethod
             {
                 iter++;
                 norm = 0;
-                //F.InitF(x);
                 F1.InitializationF(x);
                 for(int i = 0;i < size;i++)
                     F[0,i] = F1[i];

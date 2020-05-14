@@ -10,7 +10,9 @@ namespace Integral
         static double NewtonKotsKF(double lim1, double lim2, double step)
         {
             double integral = 0;
-            while(lim2 <= b)
+            double l1 = lim1;
+            var k = Math.Ceiling((b - lim2) / step) + 1;
+            for(int i = 1;i <= k;i++)
             {
                 double[] nodes;
                 double[] moments;
@@ -25,7 +27,7 @@ namespace Integral
                 nodes = new double[3];
                 nodes[0] = lim1;
                 nodes[1] = lim1 + (lim2-lim1)/2;
-                nodes[2] = b;
+                nodes[2] = lim2;
                 
                 // declare the coeff of system 
                 double[,] matrixArray = new double[3,3];
@@ -46,11 +48,11 @@ namespace Integral
                 // find the solution
                 var solv = matrix.SolutionSystem(moments);
 
-                for(int i = 0;i < 3;i++)
-                    integral += solv[0,i] * f(nodes[i]);
+                for(int j = 0;j < 3;j++)
+                    integral += solv[0,j] * f(nodes[j]);
 
-                lim1 = lim2;
-                lim2 += step;
+                lim1 = l1 + (i) * step;
+                lim2 = l1 + (i + 1) * step;
             }
             return integral;
         }
@@ -58,7 +60,9 @@ namespace Integral
         static double GaussKF(double lim1,double lim2,double step)
         {
             double result = 0;
-            while(lim2 <= b)
+            double l1 = lim1;
+            var k = Math.Ceiling((b - lim2) / step) + 1;
+            for(int i = 1;i <= k;i++)
             {
                 double[] moments = new double[6];
                 moments[0] = functions.IntegralX0(lim1,lim2);
@@ -98,8 +102,8 @@ namespace Integral
                 // find the solution
                 var solution = matrix.SolutionSystem(y);
                 double[] solv = new double[solution.GetLength(1)];
-                for(int i = 0;i < solution.GetLength(1);i++)
-                    solv[i] = solution[0,i];
+                for(int j = 0;j < solution.GetLength(1);j++)
+                    solv[j] = solution[0,j];
 
                 var p = functions.Kardano(solv,nodes);
 
@@ -119,16 +123,16 @@ namespace Integral
                 
                 var s = matrix.SolutionSystem(moments);
                 double[] A = new double[s.GetLength(1)];
-                for(int i = 0;i < A.Length;i++)
-                    A[i] = s[0,i];
+                for(int j = 0;j < A.Length;j++)
+                    A[j] = s[0,j];
 
-                for (int i = 0; i < 3; i++)
+                for (int j = 0; j < 3; j++)
                 {
-                    result += A[i] * f(nodes[i]);
+                    result += A[j] * f(nodes[j]);
                 }
-                lim1 = lim2;
-                lim2 += step;
 
+                lim1 = l1 + (i) * step;
+                lim2 = l1 + (i + 1) * step;
             }
             return result;
         }
@@ -146,16 +150,16 @@ namespace Integral
 
             
             double integral = NewtonKotsKF(a,b,1);
-            double error = 0.6406;
+            double metodicMistake = 0.6406;
 
-            WriteText("Вариант Ньютона-Котса :",integral,Math.Abs(exactValue - integral),error);
+            WriteText("Вариант Ньютона-Котса :",integral,Math.Abs(exactValue - integral),metodicMistake);
             
             //* * * * * * * * * * * * * Cоставная ИКФ с нужной точностью* * * * * * * * * *
             double h = Math.Ceiling((b - a) / 10);
             double lim1 = a;
             double step = (b - a) / 2;
             double lim2 = 0;
-            error = 10;
+            double error = 10;
             double L = 2;
             double degree = 4;
             double speed = 3;
@@ -163,7 +167,7 @@ namespace Integral
             Console.WriteLine("Скорость сходимости составной ИКФ :");
             while(error > 0.000001)
             {
-                step *= L;
+                //step *= L;
                 lim2 = lim1 + step;
                 integral = NewtonKotsKF(lim1,lim2,step);
 
@@ -198,7 +202,7 @@ namespace Integral
 
             lim1 = a;
             step = (b - a) / 10;
-            error = 10;
+            error = 0.6406;
 
             Console.WriteLine("Скорость сходимости составной КФ Гаусса" + "\n");
 
