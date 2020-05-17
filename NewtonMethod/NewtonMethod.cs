@@ -137,7 +137,7 @@ namespace NewtonMethod
         public double[] TransitionToModMeth()
         {
             Console.Out.Write("Переход от обычного метода Ньютона к модифицированному :" + "\n");
-            int step = 5;
+            int step = 8;
             Console.WriteLine("Шаг k = " + step);
             x.InitX();
 
@@ -172,8 +172,11 @@ namespace NewtonMethod
                 }
                 else
                 {
-                    J = new SquareMatrix(InitializationExtension.InitializationJ(xFix),size);
-                    J.LUDecomposition();
+                    if(step == 0)
+                    {
+                        J = new SquareMatrix(InitializationExtension.InitializationJ(xFix),size);
+                        J.LUDecomposition();
+                    }
                     numOfOperations += J.numOfOperations;
                     //currentX = J.SolutionSystem(F);
                     currentX = SquareMatrix.multiplyVec(J.reverseMatrix,F1,size);
