@@ -39,7 +39,7 @@ namespace DifferentialEquation
 
 
         // Метод с автоматическим выбором шага
-        static Complex[] AutomaticMethod(Function[] derivatives, double h1, double c2, Complex[] y0, double xStart, double xEnd, double rtol, double atol)
+        static Solution AutomaticMethod(Function[] derivatives, double h1, double c2, Complex[] y0, double xStart, double xEnd, double rtol, double atol)
         {
             var h = h1;
             var x = xStart;
@@ -100,8 +100,13 @@ namespace DifferentialEquation
 
             } while (x < xEnd);
 
-            System.Console.Out.WriteLine("Число шагов автоматического метода " + counter);
-            return y;
+            Solution sol = new Solution();
+            sol.count = counter;
+            sol.answer = y;
+            return sol;
+
+            //System.Console.Out.WriteLine("Число шагов автоматического метода " + counter);
+            //return y;
         }
 
         // Евклидова норма
@@ -144,12 +149,47 @@ namespace DifferentialEquation
             return F;
         }
 
+        static void output(double mas1, double mas2, double mas3, double mas4)
+        {
+            Console.WriteLine("x=5: y0 = " + mas1);
+            Console.WriteLine("x=5: y1 = " + mas2);
+            Console.WriteLine("x=5: y2 = " + mas3);
+            Console.WriteLine("x=5: y3 = " + mas4 + "\n");
+        }
+
+        public class Solution
+        {
+            public Complex[] answer;
+            public double error;
+            public int count;
+        }
+
+        
+        static Solution AutomiticSolution(double rtol, Function[] Derivatives, Complex[] y0, double acc, double acc1, double acc2, double acc3, double c2)
+        {
+            double atol = 1e-12;
+            var norm = Math.Pow((Derivatives[0](0, y0) * Derivatives[0](0, y0)).Real + (Derivatives[1](0, y0) * Derivatives[1](0, y0)).Real
+                            + (Derivatives[2](0, y0) * Derivatives[2](0, y0)).Real + (Derivatives[3](0, y0) * Derivatives[3](0, y0)).Real, 1 / 2.0);
+
+            var delta = Math.Pow(1 / 5.0, 3) + Math.Pow(norm, 3);
+            var h1 = Math.Pow((rtol * norm + atol) / delta, 1.0 / 3);
+            
+            Solution sol = AutomaticMethod(Derivatives, h1, c2, y0, 0, 5, rtol, atol);
+            var autoError = Math.Sqrt(Math.Pow(sol.answer[0].Real - acc, 2) + Math.Pow(sol.answer[1].Real - acc1, 2)
+                            + Math.Pow(sol.answer[2].Real - acc2, 2) + Math.Pow(sol.answer[3].Real - acc3, 2));
+
+            sol.error = autoError;
+
+            return sol;
+        }
+
         static void Main(string[] args)
         {
             double A = -3.0;
             double B = 2.0;
             double C = 1.0; 
 
+            // Initial derivatives
             var Derivatives = new Function[4];
             Derivatives[0] = (x, y) => (2 * x * Complex.Pow(y[1], 1.0 / B) * y[3]);
             Derivatives[1] = (x, y) => (2 * B * x * Complex.Exp((B / C)*(y[2] - A)) * y[3]);
@@ -157,24 +197,26 @@ namespace DifferentialEquation
             Derivatives[3] = (x, y) => (-2 * x * Complex.Log(y[0]));
 
             // Initial conditions of y1,y2,y3,y4
-            var y0 = new Complex[] {1,1,A,1};
+            var y0 = new Complex[] {1,1,A,1}; // 
 
-            var mas = RKMethod(Derivatives, 1300, 0.1, y0, 0, 5);
             var acc = Math.Exp(Math.Sin(5 * 5));
             var acc1 = Math.Exp(B * Math.Sin(5 * 5));
             var acc2 = (C * Math.Sin(5 * 5) + A);
             var acc3 = Math.Cos(5 * 5);
 
-            Console.WriteLine("Двухэтапный ЯМРК второго порядка, зависящий от константы с2");
-            Console.WriteLine("1300 шагов, x=5:" + mas[0, 1300]);
-            var grid2 = RKMethod(Derivatives, 1300, 1, y0, 0, 5);
-            Console.WriteLine("Метод Хойна, 1300 шагов, x=5:" + grid2[0, 1300]);
-            Console.WriteLine("y0, x=5:" + acc);
-            Console.WriteLine("y1, x=5:" + acc1);
-            Console.WriteLine("y2, x=5:" + acc2);
-            Console.WriteLine("y3, x=5:" + acc3 + "\n");
+            Console.WriteLine("Точные значения");
+            output(acc, acc1, acc2, acc3);
 
+            int steps = 1300; //Для удобства вывода графиков
+            
+            var mas = RKMethod(Derivatives, 1300, 0.1, y0, 0, 5);
+            Console.WriteLine("Двухэтапный ЯМРК второго порядка, с2 = 0.1");
+            Console.WriteLine("1300 шагов, x=5: y0 = " + mas[0, steps].Real);
 
+            var grid2 = RKMethod(Derivatives, steps, 1, y0, 0, 5);
+            Console.WriteLine("Метод Хойна, с2 = 1");
+            Console.WriteLine("1300 шагов, x=5: y0 = " + grid2[0, steps].Real);
+            Console.WriteLine("");
 
             double[] mist = new double[6];
             for (int i = 1; i <= 6; i++)
@@ -188,10 +230,39 @@ namespace DifferentialEquation
             }
             DrawGraph.Draw(0, 0, mas, grid2, mist);
 
+            // Таблица "Порядок сходимости методов"
+            Console.WriteLine("Двухэтапный ЯМРК второго порядка, с2 = 0.1, х=5, результаты для у0");
+
+            double h = 0.01;
+            Console.WriteLine("{0,12} | {1, 10}|  {2,20} | {3,14}", "Число шагов", "h", "Error", "log2(err/er)");
+            for (int i = 0; i <= 6; i++)
+            {
+                h /= 2;
+                steps = (int) (5.0 / h);
+                mas = RKMethod(Derivatives, steps, 0.1, y0, 0, 5);
+                Console.WriteLine("{0,12} | {1, 10}|  {2,20} | {3,14}", steps, h, acc - mas[0, steps].Real, 
+                    -Math.Log(-(mas[0, steps-1].Real - mas[0, steps].Real), 2.0));
+            } 
+            Console.WriteLine("");
+
+            // Таблица для метода Хойна
+            Console.WriteLine("Метод хойна, с2 = 1, х=5, результаты для у0");
+
+            h = 0.01;
+            Console.WriteLine("{0,12} | {1, 10}|  {2,20} | {3,14}", "Число шагов", "h", "Error", "log2(err/er)");
+            for (int i = 0; i <= 6; i++)
+            {
+                h /= 2;
+                steps = (int) (5.0 / h);
+                mas = RKMethod(Derivatives, steps, 1, y0, 0, 5);
+                Console.WriteLine("{0,12} | {1, 10}|  {2,20} | {3,14}", steps, h, acc - mas[0, steps].Real,
+                    -Math.Log(-(mas[0, steps-1].Real - mas[0, steps].Real), 2.0));
+            }
+            Console.WriteLine("");
+
             // метод с выбором оптимального шага
             var mash = RKMethod(Derivatives, 5.0 * 50, 0.1, y0, 0, 5);
             var mash2 = RKMethod(Derivatives, 5.0 * 100, 0.1, y0, 0, 5);
-
 
             var Rn = new Complex[4];
 
@@ -206,33 +277,48 @@ namespace DifferentialEquation
                             + Math.Pow(masht[2, (int)(Math.Ceiling(5 / hopt))].Real - acc2, 2) + Math.Pow(masht[3, (int)(Math.Ceiling(5 / hopt))].Real - acc3, 2));
 
             Console.WriteLine("Оптимальный шаг:" + hopt);
-            Console.WriteLine("Ошибка оптимального шага, x=5:" + error);
             Console.WriteLine("Число шагов:" + Math.Ceiling(5 / hopt));
-            Console.WriteLine("y0 x=5:" + masht[0, (int)(Math.Ceiling(5 / hopt))]);
-            Console.WriteLine("y1 x=5:" + masht[1, (int)(Math.Ceiling(5 / hopt))]);
-            Console.WriteLine("y2 x=5:" + masht[2, (int)(Math.Ceiling(5 / hopt))]);
-            Console.WriteLine("y3 x=5:" + masht[3, (int)(Math.Ceiling(5 / hopt))] + "\n");
+            Console.WriteLine("Ошибка x=5: " + error);
+            //output(masht[0, (int)(Math.Ceiling(5 / hopt))].Real, masht[1, (int)(Math.Ceiling(5 / hopt))].Real,
+            //masht[2, (int)(Math.Ceiling(5 / hopt))].Real, masht[3, (int)(Math.Ceiling(5 / hopt))].Real);
+            Console.WriteLine("");
 
 
+            Solution sol = new Solution();
 
-
-            // автоматический метод
+            // Автоматический метод из условия, с2 = 0.1
+            Console.WriteLine("ЯМРК с2 = 0.1 c автоматическим выбором шага");
             double rtol = 1e-6;
-            double atol = 1e-12;
-            var norm = Math.Pow((Derivatives[0](0, y0)*Derivatives[0](0, y0)).Real + (Derivatives[1](0, y0)*Derivatives[1](0, y0)).Real 
-                            + (Derivatives[2](0, y0)*Derivatives[2](0, y0)).Real + (Derivatives[3](0, y0)*Derivatives[3](0, y0)).Real, 1/2.0);
+            double c2 = 0.1;
+            sol = AutomiticSolution(rtol, Derivatives, y0, acc, acc1, acc2, acc3, c2);
 
-            var delta = Math.Pow(1/5.0, 3) + Math.Pow(norm, 3);
-            var h1 = Math.Pow((rtol*norm + atol)/delta, 1.0/3);
-            var autoAnswer = AutomaticMethod(Derivatives, h1, 0.01, y0, 0, 5, rtol, atol);
-            var autoError = Math.Sqrt(Math.Pow(autoAnswer[0].Real - acc, 2) + Math.Pow(autoAnswer[1].Real - acc1, 2)
-                                    + Math.Pow(autoAnswer[2].Real - acc2, 2) + Math.Pow(autoAnswer[3].Real - acc3, 2));
+            Console.WriteLine("Ошибка: " + sol.error);
+            Console.WriteLine("Количество вычислений: " + sol.count);
+            //Console.WriteLine("Ответ х=5: у0 = " + sol.answer[0].Real + "\n");
+            Console.WriteLine("");
 
-            Console.WriteLine("y0, x=5: " + autoAnswer[0]);
-            Console.WriteLine("y1, x=5: " + autoAnswer[1]);
-            Console.WriteLine("y2, x=5: " + autoAnswer[2]);
-            Console.WriteLine("y3, x=5: " + autoAnswer[3]);
-            Console.WriteLine("Ошибка метода с автоматическим выбором шага : " + autoError + "\n");
+
+            // Автоматический метод Хойна, с2 = 1
+            Console.WriteLine("Метода Хойна (с2 = 1) с автоматическим выбором шага ");
+            rtol = 1e-6;
+            c2 = 1;
+            sol = AutomiticSolution(rtol, Derivatives, y0, acc, acc1, acc2, acc3, c2);
+
+            Console.WriteLine("Ошибка: " + sol.error);
+            Console.WriteLine("Количество вычислений: " + sol.count);
+            //Console.WriteLine("Ответ х=5: у0 = " + sol.answer[0].Real + "\n");
+
+            // Таблица Затраты-Точность
+            Console.WriteLine("Таблица затраты - точность");
+            Console.WriteLine("{0,12} | {1, 20}|  {2,10} ", "tol", "Error", "Count");
+            rtol = 1e-6;
+            c2 = 0.1;
+            for (int i = 0; i < 6; i++)
+            {
+                sol = AutomiticSolution(rtol, Derivatives, y0, acc, acc1, acc2, acc3, c2);
+                Console.WriteLine("{0,12} | {1, 20}|  {2,10} ", rtol, sol.error, sol.count);
+                rtol /= 10;
+            }
 
             Console.Read();
 
