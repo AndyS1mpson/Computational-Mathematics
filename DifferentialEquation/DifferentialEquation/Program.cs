@@ -234,14 +234,17 @@ namespace DifferentialEquation
             Console.WriteLine("Двухэтапный ЯМРК второго порядка, с2 = 0.1, х=5, результаты для у0");
 
             double h = 0.01;
+            var er_pred = 0.08;
             Console.WriteLine("{0,12} | {1, 10}|  {2,20} | {3,14}", "Число шагов", "h", "Error", "log2(err/er)");
             for (int i = 0; i <= 6; i++)
             {
+                if (i != 0) er_pred = Math.Abs(mas[0, steps].Real - mas[0, steps - 1].Real);
+
                 h /= 2;
                 steps = (int) (5.0 / h);
                 mas = RKMethod(Derivatives, steps, 0.1, y0, 0, 5);
-                Console.WriteLine("{0,12} | {1, 10}|  {2,20} | {3,14}", steps, h, acc - mas[0, steps].Real, 
-                    -Math.Log(-(mas[0, steps-1].Real - mas[0, steps].Real), 2.0));
+                Console.WriteLine("{0,12} | {1, 10}|  {2,20} | {3,14}", steps, h, acc - mas[0, steps].Real,
+                    Math.Log(Math.Pow(er_pred / Math.Abs(mas[0, steps].Real - mas[0, steps - 1].Real), 2.0), 2.0));
             } 
             Console.WriteLine("");
 
@@ -249,14 +252,19 @@ namespace DifferentialEquation
             Console.WriteLine("Метод хойна, с2 = 1, х=5, результаты для у0");
 
             h = 0.01;
+            er_pred = 0.08;
             Console.WriteLine("{0,12} | {1, 10}|  {2,20} | {3,14}", "Число шагов", "h", "Error", "log2(err/er)");
             for (int i = 0; i <= 6; i++)
             {
+                if (i != 0) er_pred = Math.Abs(mas[0, steps].Real - mas[0, steps-1].Real);
+                
                 h /= 2;
                 steps = (int) (5.0 / h);
                 mas = RKMethod(Derivatives, steps, 1, y0, 0, 5);
+
                 Console.WriteLine("{0,12} | {1, 10}|  {2,20} | {3,14}", steps, h, acc - mas[0, steps].Real,
-                    -Math.Log(-(mas[0, steps-1].Real - mas[0, steps].Real), 2.0));
+                    Math.Log(Math.Pow(er_pred / Math.Abs(mas[0, steps].Real - mas[0, steps-1].Real), 2.0), 2.0));
+
             }
             Console.WriteLine("");
 
